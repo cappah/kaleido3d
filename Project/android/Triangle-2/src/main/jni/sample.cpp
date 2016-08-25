@@ -380,7 +380,7 @@ void VkSample::InitDevice()
 
 void VkSample::InitSurface()
 {
-    VkResult ret = VK_SUCCESS;
+//    VkResult ret = VK_SUCCESS;
     // At this point, we create the android surface. This is because we want to
     // ensure our device is capable of working with the created surface object.
 //    VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
@@ -540,66 +540,92 @@ void VkSample::InitSwapchain()
     for (int i = 0; i < m_swapchainImageCount; i++) {
         const VkFormat depthFormat = VK_FORMAT_D16_UNORM;
 
-        VkImageCreateInfo imageCreateInfo = {};
-        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageCreateInfo.pNext = nullptr;
-        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.format = depthFormat;
-        imageCreateInfo.extent = {m_width, m_height, 1};
-        imageCreateInfo .mipLevels = 1;
-        imageCreateInfo .arrayLayers = 1;
-        imageCreateInfo .samples = VK_SAMPLE_COUNT_1_BIT;
-        imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-        imageCreateInfo .flags = 0;
+        const Format depthFmt = Format::eD16Unorm;
 
-        VkImageViewCreateInfo imageViewCreateInfo = {};
-        imageViewCreateInfo .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        imageViewCreateInfo .pNext = nullptr;
-        imageViewCreateInfo .image = VK_NULL_HANDLE;
-        imageViewCreateInfo.format = depthFormat;
-        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-        imageViewCreateInfo.subresourceRange.levelCount = 1;
-        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-        imageViewCreateInfo.subresourceRange.layerCount = 1;
-        imageViewCreateInfo.flags = 0;
-        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+//        VkImageCreateInfo imageCreateInfo = {};
+//        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+//        imageCreateInfo.pNext = nullptr;
+//        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+//        imageCreateInfo.format = depthFormat;
+//        imageCreateInfo.extent = {m_width, m_height, 1};
+//        imageCreateInfo .mipLevels = 1;
+//        imageCreateInfo .arrayLayers = 1;
+//        imageCreateInfo .samples = VK_SAMPLE_COUNT_1_BIT;
+//        imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+//        imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+//        imageCreateInfo .flags = 0;
 
-        VkMemoryRequirements mem_reqs;
-        VkResult  err;
+        ImageCreateInfo imgCreateInfo;
+        imgCreateInfo.setImageType(ImageType::e2D).setFormat(depthFmt).setMipLevels(1)
+                .setArrayLayers(1).setSamples(SampleCountFlagBits::e1).setTiling(ImageTiling::eOptimal)
+                .setUsage(ImageUsageFlagBits::eDepthStencilAttachment)
+                .setExtent(Extent3D(m_width,m_height,1));
+
+//        VkImageViewCreateInfo imageViewCreateInfo = {};
+//        imageViewCreateInfo .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+//        imageViewCreateInfo .pNext = nullptr;
+//        imageViewCreateInfo .image = VK_NULL_HANDLE;
+//        imageViewCreateInfo.format = depthFormat;
+//        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+//        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+//        imageViewCreateInfo.subresourceRange.levelCount = 1;
+//        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+//        imageViewCreateInfo.subresourceRange.layerCount = 1;
+//        imageViewCreateInfo.flags = 0;
+//        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+
+        ImageViewCreateInfo imgViewCreateInfo;
+        imgViewCreateInfo.setFormat(depthFmt)
+                .setSubresourceRange(ImageSubresourceRange(ImageAspectFlagBits::eDepth,0,1,0,1))
+                .setViewType(ImageViewType::e2D);
+
+//        VkMemoryRequirements mem_reqs;
+//        VkResult  err;
         bool  pass;
 
-        m_depthBuffers[i].format = depthFormat;
+        m_depthBuffers[i].format = depthFmt;
 
         // Create the image with details as imageCreateInfo
-        err = vkCreateImage(m_device, &imageCreateInfo, nullptr, &m_depthBuffers[i].image);
-        VK_CHECK(!err);
+//        err = vkCreateImage(m_device, &imageCreateInfo, nullptr, &m_depthBuffers[i].image);
+//        VK_CHECK(!err);
+
+        m_depthBuffers[i].image = device.createImage(imgCreateInfo);
 
         // discover what memory requirements are for this image.
-        vkGetImageMemoryRequirements(m_device, m_depthBuffers[i].image, &mem_reqs);
+//        vkGetImageMemoryRequirements(m_device, m_depthBuffers[i].image, &mem_reqs);
+
+        MemoryRequirements memoryRequirements = device.getImageMemoryRequirements(m_depthBuffers[i].image);
 
         // Allocate memory according to requirements
-        VkMemoryAllocateInfo memoryAllocateInfo = {};
-        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        memoryAllocateInfo.pNext = nullptr;
-        memoryAllocateInfo.allocationSize = 0;
-        memoryAllocateInfo.memoryTypeIndex = 0;
-        memoryAllocateInfo.allocationSize = mem_reqs.size;
-        pass = GetMemoryTypeFromProperties(mem_reqs.memoryTypeBits, 0, &memoryAllocateInfo.memoryTypeIndex);
-        VK_CHECK(pass);
+//        VkMemoryAllocateInfo memoryAllocateInfo = {};
+//        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+//        memoryAllocateInfo.pNext = nullptr;
+//        memoryAllocateInfo.allocationSize = 0;
+//        memoryAllocateInfo.memoryTypeIndex = 0;
+//        memoryAllocateInfo.allocationSize = mem_reqs.size;
+//        pass = GetMemoryTypeFromProperties(mem_reqs.memoryTypeBits, 0, &memoryAllocateInfo.memoryTypeIndex);
+//        VK_CHECK(pass);
 
-        err = vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &m_depthBuffers[i].mem);
-        VK_CHECK(!err);
+        MemoryAllocateInfo memoryAllocateInfo(memoryRequirements.size, 0);
+        pass = GetMemoryTypeFromProperties(memoryRequirements.memoryTypeBits, 0, &memoryAllocateInfo.memoryTypeIndex);
+
+
+//        err = vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &m_depthBuffers[i].mem);
+//        VK_CHECK(!err);
+
+        m_depthBuffers[i].mem = device.allocateMemory(memoryAllocateInfo);
 
         // Bind memory to the image
-        err = vkBindImageMemory(m_device, m_depthBuffers[i].image, m_depthBuffers[i].mem, 0);
-        VK_CHECK(!err);
+//        err = vkBindImageMemory(m_device, m_depthBuffers[i].image, m_depthBuffers[i].mem, 0);
+//        VK_CHECK(!err);
+
+        device.bindImageMemory(m_depthBuffers[i].image, m_depthBuffers[i].mem, 0);
 
         // Create the view for this image
-        imageViewCreateInfo.image = m_depthBuffers[i].image;
-        err = vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_depthBuffers[i].view);
-        VK_CHECK(!err);
+        imgViewCreateInfo.image = m_depthBuffers[i].image;
+//        err = vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_depthBuffers[i].view);
+//        VK_CHECK(!err);
+        m_depthBuffers[i].view = device.createImageView(imgViewCreateInfo);
     }
 
 }
@@ -610,28 +636,32 @@ void VkSample::InitCommandbuffers()
 {
     VkResult ret = VK_SUCCESS;
     // Command buffers are allocated from a pool; we define that pool here and create it.
-    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
-    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolCreateInfo.pNext = nullptr;
-    commandPoolCreateInfo.queueFamilyIndex = m_queueFamilyIndex;
-    commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+//    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+//    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+//    commandPoolCreateInfo.pNext = nullptr;
+//    commandPoolCreateInfo.queueFamilyIndex = m_queueFamilyIndex;
+//    commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    ret = vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &m_commandPool);
-    VK_CHECK(!ret);
+//    ret = vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &m_commandPool);
+//    VK_CHECK(!ret);
 
+    CommandPoolCreateInfo commandPoolCreateInfo(CommandPoolCreateFlagBits::eResetCommandBuffer, m_queueFamilyIndex);
+    commandPool = device.createCommandPool(commandPoolCreateInfo);
 
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-    commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    commandBufferAllocateInfo.pNext = nullptr;
-    commandBufferAllocateInfo.commandPool = m_commandPool;
-    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandBufferCount = 1;
+//    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+//    commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+//    commandBufferAllocateInfo.pNext = nullptr;
+//    commandBufferAllocateInfo.commandPool = m_commandPool;
+//    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+//    commandBufferAllocateInfo.commandBufferCount = 1;
 
+    CommandBufferAllocateInfo commandBufferAllocateInfo(commandPool, CommandBufferLevel::ePrimary,1);
     // Create render command buffers, one per swapchain image
     for (int i=0; i < m_swapchainImageCount; i++)
     {
-        ret = vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, &m_swapchainBuffers[i].cmdBuffer);
-        VK_CHECK(!ret);
+//        ret = vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, &m_swapchainBuffers[i].cmdBuffer);
+//        VK_CHECK(!ret);
+        m_swapchainBuffers[i].cmdBuffer = device.allocateCommandBuffers(commandBufferAllocateInfo)[0];
     }
 
 }
@@ -1011,29 +1041,32 @@ void VkSample::InitFrameBuffers()
 
 void VkSample::InitSync()
 {
-    VkResult ret = VK_SUCCESS;
+//    VkResult ret = VK_SUCCESS;
     // For synchronization, we have semaphores for rendering and backbuffer signalling.
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreCreateInfo.pNext = nullptr;
-    semaphoreCreateInfo.flags = 0;
-    ret = vkCreateSemaphore(m_device, &semaphoreCreateInfo, nullptr, &m_backBufferSemaphore);
-    VK_CHECK(!ret);
+//    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+//    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+//    semaphoreCreateInfo.pNext = nullptr;
+//    semaphoreCreateInfo.flags = 0;
+//    ret = vkCreateSemaphore(m_device, &semaphoreCreateInfo, nullptr, &m_backBufferSemaphore);
+//    VK_CHECK(!ret);
 
-    ret = vkCreateSemaphore(m_device, &semaphoreCreateInfo, nullptr, &m_renderCompleteSemaphore);
-    VK_CHECK(!ret);
+//    ret = vkCreateSemaphore(m_device, &semaphoreCreateInfo, nullptr, &m_renderCompleteSemaphore);
+//    VK_CHECK(!ret);
+    SemaphoreCreateInfo info;
+    backBufferSemaphore = device.createSemaphore(info);
+    renderCompleteSemaphore = device.createSemaphore(info);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool VkSample::GetMemoryTypeFromProperties( uint32_t typeBits, VkFlags requirements_mask, uint32_t* typeIndex)
+bool VkSample::GetMemoryTypeFromProperties( uint32_t typeBits, MemoryPropertyFlags requirements_mask, uint32_t* typeIndex)
 {
     VK_CHECK(typeIndex != nullptr);
     // Search memtypes to find first index with those properties
     for (uint32_t i = 0; i < 32; i++) {
         if ((typeBits & 1) == 1) {
             // Type is available, does it match user properties?
-            if ((m_physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags &
+            if ((physicalDeviceMemoryProps.memoryTypes[i].propertyFlags &
                  requirements_mask) == requirements_mask) {
                 *typeIndex = i;
                 return true;
@@ -1049,38 +1082,42 @@ bool VkSample::GetMemoryTypeFromProperties( uint32_t typeBits, VkFlags requireme
 
 void VkSample::SetNextBackBuffer()
 {
-    VkResult ret = VK_SUCCESS;
+//    VkResult ret = VK_SUCCESS;
 
     // Get the next image to render to, then queue a wait until the image is ready
-    ret  = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_backBufferSemaphore, VK_NULL_HANDLE, &m_swapchainCurrentIdx);
-    if (ret == VK_ERROR_OUT_OF_DATE_KHR) {
-        LOGW("VK_ERROR_OUT_OF_DATE_KHR not handled in sample");
-    } else if (ret == VK_SUBOPTIMAL_KHR) {
-        LOGW("VK_SUBOPTIMAL_KHR not handled in sample");
-    }
-    VK_CHECK(!ret);
+//    ret  = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_backBufferSemaphore, VK_NULL_HANDLE, &m_swapchainCurrentIdx);
+//    if (ret == VK_ERROR_OUT_OF_DATE_KHR) {
+//        LOGW("VK_ERROR_OUT_OF_DATE_KHR not handled in sample");
+//    } else if (ret == VK_SUBOPTIMAL_KHR) {
+//        LOGW("VK_SUBOPTIMAL_KHR not handled in sample");
+//    }
+//    VK_CHECK(!ret);
 
+    Result ret = device.acquireNextImageKHR(swapChain, UINT64_MAX, backBufferSemaphore, Fence(), &m_swapchainCurrentIdx);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void VkSample::PresentBackBuffer()
 {
-    VkResult ret = VK_SUCCESS;
+//    VkResult ret = VK_SUCCESS;
 
     // Use WSI to present. The semaphore chain used to signal rendering
     // completion allows the operation to wait before the present is
     // completed.
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType          = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains    = &m_swapchain;
-    presentInfo.pImageIndices  = &m_swapchainCurrentIdx;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores= &m_renderCompleteSemaphore;
+//    VkPresentInfoKHR presentInfo = {};
+//    presentInfo.sType          = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+//    presentInfo.swapchainCount = 1;
+//    presentInfo.pSwapchains    = &m_swapchain;
+//    presentInfo.pImageIndices  = &m_swapchainCurrentIdx;
+//    presentInfo.waitSemaphoreCount = 1;
+//    presentInfo.pWaitSemaphores= &m_renderCompleteSemaphore;
 
-    ret = vkQueuePresentKHR(m_queue, &presentInfo);
-    VK_CHECK(!ret);
+//    ret = vkQueuePresentKHR(m_queue, &presentInfo);
+//    VK_CHECK(!ret);
+
+    PresentInfoKHR presentInfoKHR(1,&renderCompleteSemaphore,1,&swapChain,&m_swapchainCurrentIdx);
+    queue.presentKHR(presentInfoKHR);
 
     // Obtain the back buffer for the next frame.
     SetNextBackBuffer();
@@ -1097,47 +1134,64 @@ bool VkSample::TearDown()
 
     // Destroy all resources for framebuffers, swapchain images, and depth buffers
     for (uint32_t i = 0; i < m_swapchainImageCount; i++) {
-        vkDestroyFramebuffer(m_device, m_frameBuffers[i], nullptr);
-
-        vkFreeCommandBuffers(m_device, m_commandPool, 1, &m_swapchainBuffers[i].cmdBuffer);
-        vkDestroyImageView(m_device, m_swapchainBuffers[i].view, nullptr);
-        vkDestroyImage(m_device, m_swapchainBuffers[i].image, nullptr);
-
-        vkDestroyImageView(m_device, m_depthBuffers[i].view, nullptr);
-        vkDestroyImage(m_device, m_depthBuffers[i].image, nullptr);
-        vkFreeMemory(m_device, m_depthBuffers[i].mem, nullptr);
+//        vkDestroyFramebuffer(m_device, m_frameBuffers[i], nullptr);
+        device.destroyFramebuffer(framebuffers[i]);
+//        vkFreeCommandBuffers(m_device, m_commandPool, 1, &m_swapchainBuffers[i].cmdBuffer);
+        device.freeCommandBuffers(commandPool, 1, &m_swapchainBuffers[i].cmdBuffer);
+//        vkDestroyImageView(m_device, m_swapchainBuffers[i].view, nullptr);
+        device.destroyImageView(m_swapchainBuffers[i].view);
+//        vkDestroyImage(m_device, m_swapchainBuffers[i].image, nullptr);
+        device.destroyImage(m_swapchainBuffers[i].image);
+//        vkDestroyImageView(m_device, m_depthBuffers[i].view, nullptr);
+        device.destroyImageView(m_depthBuffers[i].view);
+//        vkDestroyImage(m_device, m_depthBuffers[i].image, nullptr);
+        device.destroyImage(m_depthBuffers[i].image);
+//        vkFreeMemory(m_device, m_depthBuffers[i].mem, nullptr);
+        device.freeMemory(m_depthBuffers[i].mem);
     }
 
-    delete [] m_frameBuffers;
-    delete [] m_swapchainBuffers;
+//    delete [] m_frameBuffers;
+//    delete [] m_swapchainBuffers;
     delete [] m_depthBuffers;
 
     // Destroy pipeline resources
-    vkDestroyPipeline(m_device, m_pipeline, nullptr);
-    vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-    vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-    vkDestroyDescriptorSetLayout(m_device, m_descriptorLayout, nullptr);
+//    vkDestroyPipeline(m_device, m_pipeline, nullptr);
+    device.destroyPipeline(pipeline);
+//    vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+    device.destroyRenderPass(renderPass);
+//    vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+    device.destroyPipelineLayout(pipelineLayout);
+//    vkDestroyDescriptorSetLayout(m_device, m_descriptorLayout, nullptr);
+    device.destroyDescriptorSetLayout(descriptorLayout);
 
     // Destroy pools
-    vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+//    vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+    device.destroyCommandPool(commandPool);
 
     // Destroy sync
-    vkDestroySemaphore( m_device, m_backBufferSemaphore, nullptr);
-    vkDestroySemaphore( m_device, m_renderCompleteSemaphore, nullptr);
+//    vkDestroySemaphore( m_device, m_backBufferSemaphore, nullptr);
+    device.destroySemaphore(backBufferSemaphore);
+//    vkDestroySemaphore( m_device, m_renderCompleteSemaphore, nullptr);
+    device.destroySemaphore(renderCompleteSemaphore);
 
     // Destroy vertices
     vkDestroyBuffer(m_device, m_vertices.buf, nullptr);
     vkFreeMemory(m_device, m_vertices.mem, nullptr);
 
     // Destroy the swapchain
-    vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+//    vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+    device.destroySwapchainKHR(swapChain);
 
     // Destroy the device, surface and instance
-    vkDestroyDevice(m_device, nullptr);
-    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-    vkDestroyInstance(m_instance, nullptr);
+//    vkDestroyDevice(m_device, nullptr);
+    device.destroy();
 
-    delete [] m_pPhysicalDevices;
+//    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+    instance.destroySurfaceKHR(surface);
+//    vkDestroyInstance(m_instance, nullptr);
+    instance.destroy();
+
+//    delete [] m_pPhysicalDevices;
 
     m_initialized = false;
     m_initBegun = false;
@@ -1152,13 +1206,15 @@ void VkSample::BuildCmdBuffer()
     // For the triangle sample, we pre-record our command buffer, as it is static.
     // We have a buffer per swap chain image, so loop over the creation process.
     for (uint32_t i = 0; i < m_swapchainImageCount; i++) {
-        VkCommandBuffer &cmdBuffer = m_swapchainBuffers[i].cmdBuffer;
+        CommandBuffer &cmdBuffer = m_swapchainBuffers[i].cmdBuffer;
 
         // vkBeginCommandBuffer should reset the command buffer, but Reset can be called
         // to make it more explicit.
-        VkResult err;
-        err = vkResetCommandBuffer(cmdBuffer, 0);
-        VK_CHECK(!err);
+//        VkResult err;
+//        err = vkResetCommandBuffer(cmdBuffer, 0);
+//        VK_CHECK(!err);
+
+        cmdBuffer.reset(CommandBufferResetFlagBits());
 
         VkCommandBufferInheritanceInfo cmd_buf_hinfo = {};
         cmd_buf_hinfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
@@ -1279,23 +1335,27 @@ void VkSample::DrawFrame()
         return;
     }
 
-    VkFence nullFence = VK_NULL_HANDLE;
+//    VkFence nullFence = VK_NULL_HANDLE;
 
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.pNext = nullptr;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &m_backBufferSemaphore;
-    submitInfo.pWaitDstStageMask = nullptr;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_swapchainBuffers[m_swapchainCurrentIdx].cmdBuffer;
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &m_renderCompleteSemaphore;
+//    VkSubmitInfo submitInfo = {};
+//    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+//    submitInfo.pNext = nullptr;
+//    submitInfo.waitSemaphoreCount = 1;
+//    submitInfo.pWaitSemaphores = &m_backBufferSemaphore;
+//    submitInfo.pWaitDstStageMask = nullptr;
+//    submitInfo.commandBufferCount = 1;
+//    submitInfo.pCommandBuffers = &m_swapchainBuffers[m_swapchainCurrentIdx].cmdBuffer;
+//    submitInfo.signalSemaphoreCount = 1;
+//    submitInfo.pSignalSemaphores = &m_renderCompleteSemaphore;
 
-    VkResult err;
+//    VkResult err;
 
-    err = vkQueueSubmit(m_queue, 1, &submitInfo,  VK_NULL_HANDLE);
-    VK_CHECK(!err);
+//    err = vkQueueSubmit(m_queue, 1, &submitInfo,  VK_NULL_HANDLE);
+//    VK_CHECK(!err);
+
+    SubmitInfo info(1, &backBufferSemaphore, nullptr, 1, &m_swapchainBuffers[m_swapchainCurrentIdx].cmdBuffer, 1, &renderCompleteSemaphore);
+    queue.submit(1, &info, Fence());
+
 
     PresentBackBuffer();
 

@@ -26,10 +26,10 @@
 #define VK_CHECK(X) if (!(X)) { LOGE("VK_CHECK Failure"); assert((X));}
 
 struct DepthBuffer {
-    VkFormat format;
-    VkImage image;
-    VkDeviceMemory mem;
-    VkImageView view;
+    vk::Format format;
+    vk::Image image;
+    vk::DeviceMemory mem;
+    vk::ImageView view;
 };
 
 struct SwapchainBuffer
@@ -40,11 +40,11 @@ struct SwapchainBuffer
 };
 
 struct Vertices {
-    VkBuffer buf;
-    VkDeviceMemory mem;
-    VkPipelineVertexInputStateCreateInfo vi;
-    VkVertexInputBindingDescription      vi_bindings[1];
-    VkVertexInputAttributeDescription    vi_attrs[2];
+    vk::Buffer buf;
+    vk::DeviceMemory mem;
+    vk::PipelineVertexInputStateCreateInfo vi;
+    vk::VertexInputBindingDescription      vi_bindings[1];
+    vk::VertexInputAttributeDescription    vi_attrs[2];
 };
 
 class VkSample
@@ -80,7 +80,7 @@ protected:
     void PresentBackBuffer();
     
     VkShaderModule CreateShaderModule(const uint32_t* code, uint32_t size);
-    bool GetMemoryTypeFromProperties( uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex);
+    bool GetMemoryTypeFromProperties( uint32_t typeBits, vk::MemoryPropertyFlags requirements_mask, uint32_t* typeIndex);
 
     ANativeWindow* m_androidWindow;
 
@@ -96,38 +96,50 @@ protected:
     vk::SurfaceFormatKHR surfaceFormat;
     vk::SwapchainKHR swapChain;
 
+    vk::Semaphore backBufferSemaphore;
+    vk::Semaphore renderCompleteSemaphore;
+
+    vk::CommandPool commandPool;
+
+    std::vector<vk::Framebuffer> framebuffers;
+
+    vk::DescriptorSetLayout descriptorLayout;
+    vk::PipelineLayout pipelineLayout;
+    vk::RenderPass renderPass;
+    vk::Pipeline pipeline;
+
     VkInstance m_instance;
     VkPhysicalDevice* m_pPhysicalDevices;
-    VkPhysicalDevice m_physicalDevice;
-    VkPhysicalDeviceProperties m_physicalDeviceProperties;
-    VkPhysicalDeviceMemoryProperties m_physicalDeviceMemoryProperties;
+//    VkPhysicalDevice m_physicalDevice;
+//    VkPhysicalDeviceProperties m_physicalDeviceProperties;
+//    VkPhysicalDeviceMemoryProperties m_physicalDeviceMemoryProperties;
     VkDevice m_device;
-    uint32_t m_physicalDeviceCount;
+//    uint32_t m_physicalDeviceCount;
     uint32_t m_queueFamilyIndex;
-    VkQueue m_queue;
-    VkSurfaceKHR m_surface;
-    VkSurfaceFormatKHR m_surfaceFormat;
+//    VkQueue m_queue;
+//    VkSurfaceKHR m_surface;
+//    VkSurfaceFormatKHR m_surfaceFormat;
 
-    VkSwapchainKHR m_swapchain;
+//    VkSwapchainKHR m_swapchain;
     SwapchainBuffer* m_swapchainBuffers;
     uint32_t m_swapchainCurrentIdx;
     uint32_t m_height;
     uint32_t m_width;
     uint32_t m_swapchainImageCount;
-    VkSemaphore m_backBufferSemaphore;
-    VkSemaphore m_renderCompleteSemaphore;
-    VkFramebuffer* m_frameBuffers;
+//    VkSemaphore m_backBufferSemaphore;
+//    VkSemaphore m_renderCompleteSemaphore;
+//    VkFramebuffer* m_frameBuffers;
 
-    VkCommandPool m_commandPool;
+//    VkCommandPool m_commandPool;
 
     DepthBuffer* m_depthBuffers;
 
     Vertices m_vertices;
     
-    VkDescriptorSetLayout m_descriptorLayout;
-    VkPipelineLayout  m_pipelineLayout;
-    VkRenderPass m_renderPass;
-    VkPipeline m_pipeline;
+//    VkDescriptorSetLayout m_descriptorLayout;
+//    VkPipelineLayout  m_pipelineLayout;
+//    VkRenderPass m_renderPass;
+//    VkPipeline m_pipeline;
     
     uint64_t GetTime();
     uint64_t m_frameTimeBegin;
