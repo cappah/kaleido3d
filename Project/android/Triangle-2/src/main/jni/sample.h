@@ -108,12 +108,12 @@ protected:
     vk::RenderPass renderPass;
     vk::Pipeline pipeline;
 
-    VkInstance m_instance;
-    VkPhysicalDevice* m_pPhysicalDevices;
+//    VkInstance m_instance;
+//    VkPhysicalDevice* m_pPhysicalDevices;
 //    VkPhysicalDevice m_physicalDevice;
 //    VkPhysicalDeviceProperties m_physicalDeviceProperties;
 //    VkPhysicalDeviceMemoryProperties m_physicalDeviceMemoryProperties;
-    VkDevice m_device;
+//    VkDevice m_device;
 //    uint32_t m_physicalDeviceCount;
     uint32_t m_queueFamilyIndex;
 //    VkQueue m_queue;
