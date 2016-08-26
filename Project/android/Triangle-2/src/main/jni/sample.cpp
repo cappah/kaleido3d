@@ -402,7 +402,7 @@ void VkSample::InitSurface()
 
 void VkSample::InitSwapchain()
 {
-    VkResult ret = VK_SUCCESS;
+//    VkResult ret = VK_SUCCESS;
     // By querying the supported formats of our surface, we can ensure that
     // we use one that the device can work with.
 //    uint32_t formatCount;
@@ -1003,8 +1003,8 @@ void VkSample::InitPipeline()
 
     PipelineDepthStencilStateCreateInfo ds;
     ds.setDepthTestEnable(VK_TRUE).setDepthWriteEnable(VK_TRUE).setDepthCompareOp(CompareOp::eLessOrEqual)
-            .setDepthBoundsTestEnable(VK_FALSE).setBack(StencilOpState(StencilOp::eKeep,StencilOp::eKeep))
-            .setStencilTestEnable(VK_FALSE).setFront(StencilOpState(StencilOp::eKeep,StencilOp::eKeep));
+            .setDepthBoundsTestEnable(VK_FALSE).setBack(StencilOpState(StencilOp::eKeep,StencilOp::eKeep,StencilOp::eKeep,CompareOp::eAlways))
+            .setStencilTestEnable(VK_FALSE).setFront(StencilOpState(StencilOp::eKeep,StencilOp::eKeep,StencilOp::eKeep,CompareOp::eAlways));
 
     // We do not use multisample
 //    VkPipelineMultisampleStateCreateInfo   ms = {};
@@ -1128,7 +1128,9 @@ void VkSample::InitFrameBuffers()
 
     ImageView attachments[2] = {};
     FramebufferCreateInfo fboInfo;
-    fboInfo.setRenderPass(renderPass).setAttachmentCount(2).setPAttachments(attachments).setWidth(m_width).setHeight(m_height).setLayers(1);
+    fboInfo.setRenderPass(renderPass)
+            .setAttachmentCount(2).setPAttachments(attachments)
+            .setWidth(m_width).setHeight(m_height).setLayers(1);
 
 //    VkResult ret;
 
@@ -1325,7 +1327,7 @@ void VkSample::BuildCmdBuffer()
 //        err = vkResetCommandBuffer(cmdBuffer, 0);
 //        VK_CHECK(!err);
 
-        cmdBuffer.reset(CommandBufferResetFlagBits());
+        cmdBuffer.reset(CommandBufferResetFlagBits(0));
 
 //        VkCommandBufferInheritanceInfo cmd_buf_hinfo = {};
 //        cmd_buf_hinfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
