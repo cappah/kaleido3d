@@ -79,7 +79,7 @@ protected:
     void SetNextBackBuffer();
     void PresentBackBuffer();
     
-    VkShaderModule CreateShaderModule(const uint32_t* code, uint32_t size);
+    vk::ShaderModule CreateShaderModule(const uint32_t* code, uint32_t size);
     bool GetMemoryTypeFromProperties( uint32_t typeBits, vk::MemoryPropertyFlags requirements_mask, uint32_t* typeIndex);
 
     ANativeWindow* m_androidWindow;

@@ -686,105 +686,133 @@ void VkSample::InitVertexBuffers()
     memset(&m_vertices, 0, sizeof(m_vertices));
 
     // Create our buffer object.
-    VkBufferCreateInfo bufferCreateInfo = {};
-    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferCreateInfo.pNext = nullptr;
-    bufferCreateInfo.size = sizeof(vb);
-    bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferCreateInfo.flags = 0;
-    err = vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &m_vertices.buf);
-    VK_CHECK(!err);
+//    VkBufferCreateInfo bufferCreateInfo = {};
+//    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+//    bufferCreateInfo.pNext = nullptr;
+//    bufferCreateInfo.size = sizeof(vb);
+//    bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+//    bufferCreateInfo.flags = 0;
+//    err = vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &m_vertices.buf);
+//    VK_CHECK(!err);
+
+    BufferCreateInfo bufCreateInfo;
+    bufCreateInfo.setUsage(BufferUsageFlagBits::eVertexBuffer).setSize(sizeof(vb));
+    m_vertices.buf = device.createBuffer(bufCreateInfo);
 
     // Obtain the memory requirements for this buffer.
-    VkMemoryRequirements mem_reqs;
-    vkGetBufferMemoryRequirements(m_device, m_vertices.buf, &mem_reqs);
-    VK_CHECK(!err);
+//    VkMemoryRequirements mem_reqs;
+//    vkGetBufferMemoryRequirements(m_device, m_vertices.buf, &mem_reqs);
+//    VK_CHECK(!err);
+
+    MemoryRequirements memoryRequirements = device.getBufferMemoryRequirements(m_vertices.buf);
 
     // And allocate memory according to those requirements.
-    VkMemoryAllocateInfo memoryAllocateInfo = {};
-    memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memoryAllocateInfo.pNext = nullptr;
-    memoryAllocateInfo.allocationSize = 0;
-    memoryAllocateInfo.memoryTypeIndex = 0;
-    memoryAllocateInfo.allocationSize  = mem_reqs.size;
-    pass = GetMemoryTypeFromProperties(mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memoryAllocateInfo.memoryTypeIndex);
-    VK_CHECK(pass);
+//    VkMemoryAllocateInfo memoryAllocateInfo = {};
+//    memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+//    memoryAllocateInfo.pNext = nullptr;
+//    memoryAllocateInfo.allocationSize = 0;
+//    memoryAllocateInfo.memoryTypeIndex = 0;
+//    memoryAllocateInfo.allocationSize  = mem_reqs.size;
+//    pass = GetMemoryTypeFromProperties(mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memoryAllocateInfo.memoryTypeIndex);
+//    VK_CHECK(pass);
 
-    err = vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &m_vertices.mem);
-    VK_CHECK(!err);
+    MemoryAllocateInfo memAllocInfo(memoryRequirements.size,0);
+    pass = GetMemoryTypeFromProperties(memoryRequirements.memoryTypeBits, MemoryPropertyFlagBits::eHostVisible, &memAllocInfo.memoryTypeIndex);
+
+//    err = vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &m_vertices.mem);
+//    VK_CHECK(!err);
+    m_vertices.mem = device.allocateMemory(memAllocInfo);
 
     // Now we need to map the memory of this new allocation so the CPU can edit it.
-    void *data;
-    err = vkMapMemory(m_device, m_vertices.mem, 0, memoryAllocateInfo.allocationSize, 0, &data);
-    VK_CHECK(!err);
+    void *data = device.mapMemory(m_vertices.mem, 0, memAllocInfo.allocationSize);
+//    VK_CHECK(!err);
 
     // Copy our triangle verticies and colors into the mapped memory area.
     memcpy(data, vb, sizeof(vb));
 
     // Unmap the memory back from the CPU.
-    vkUnmapMemory(m_device, m_vertices.mem);
+//    vkUnmapMemory(m_device, m_vertices.mem);
+    device.unmapMemory(m_vertices.mem);
 
     // Bind our buffer to the memory.
-    err = vkBindBufferMemory(m_device, m_vertices.buf, m_vertices.mem, 0);
-    VK_CHECK(!err);
+//    err = vkBindBufferMemory(m_device, m_vertices.buf, m_vertices.mem, 0);
+//    VK_CHECK(!err);
+    device.bindBufferMemory(m_vertices.buf, m_vertices.mem, 0);
 
     // The vertices need to be defined so that the pipeline understands how the
     // data is laid out. This is done by providing a VkPipelineVertexInputStateCreateInfo
     // structure with the correct information.
-    m_vertices.vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    m_vertices.vi.pNext = nullptr;
-    m_vertices.vi.vertexBindingDescriptionCount = 1;
-    m_vertices.vi.pVertexBindingDescriptions = m_vertices.vi_bindings;
-    m_vertices.vi.vertexAttributeDescriptionCount = 2;
-    m_vertices.vi.pVertexAttributeDescriptions = m_vertices.vi_attrs;
+//    m_vertices.vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+//    m_vertices.vi.pNext = nullptr;
+//    m_vertices.vi.vertexBindingDescriptionCount = 1;
+//    m_vertices.vi.pVertexBindingDescriptions = m_vertices.vi_bindings;
+//    m_vertices.vi.vertexAttributeDescriptionCount = 2;
+//    m_vertices.vi.pVertexAttributeDescriptions = m_vertices.vi_attrs;
+
+    m_vertices.vi.setVertexBindingDescriptionCount(1).setVertexAttributeDescriptionCount(2)
+            .setPVertexBindingDescriptions(m_vertices.vi_bindings)
+            .setPVertexAttributeDescriptions(m_vertices.vi_attrs);
 
     // We bind the buffer as a whole, using the correct buffer ID.
     // This defines the stride for each element of the vertex array.
-    m_vertices.vi_bindings[0].binding = VERTEX_BUFFER_BIND_ID;
-    m_vertices.vi_bindings[0].stride = sizeof(vb[0]);
-    m_vertices.vi_bindings[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+//    m_vertices.vi_bindings[0].binding = VERTEX_BUFFER_BIND_ID;
+//    m_vertices.vi_bindings[0].stride = sizeof(vb[0]);
+//    m_vertices.vi_bindings[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    m_vertices.vi_bindings[0].setBinding(VERTEX_BUFFER_BIND_ID).setStride(sizeof(vb[0])).setInputRate(VertexInputRate::eVertex);
 
     // Within each element, we define the attributes. At location 0,
     // the vertex positions, in float3 format, with offset 0 as they are
     // first in the array structure.
-    m_vertices.vi_attrs[0].binding = VERTEX_BUFFER_BIND_ID;
-    m_vertices.vi_attrs[0].location = 0;
-    m_vertices.vi_attrs[0].format = VK_FORMAT_R32G32B32_SFLOAT; //float3
-    m_vertices.vi_attrs[0].offset = 0;
+//    m_vertices.vi_attrs[0].binding = VERTEX_BUFFER_BIND_ID;
+//    m_vertices.vi_attrs[0].location = 0;
+//    m_vertices.vi_attrs[0].format = VK_FORMAT_R32G32B32_SFLOAT; //float3
+//    m_vertices.vi_attrs[0].offset = 0;
+
+    m_vertices.vi_attrs[0].setBinding(VERTEX_BUFFER_BIND_ID).setLocation(0).setFormat(Format::eR32G32B32Sfloat).setOffset(0);
 
     // The second location is the vertex colors, in RGBA float4 format.
     // These appear in each element in memory after the float3 vertex
     // positions, so the offset is set accordingly.
-    m_vertices.vi_attrs[1].binding = VERTEX_BUFFER_BIND_ID;
-    m_vertices.vi_attrs[1].location = 1;
-    m_vertices.vi_attrs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT; //float4
-    m_vertices.vi_attrs[1].offset = sizeof(float) * 3;
+//    m_vertices.vi_attrs[1].binding = VERTEX_BUFFER_BIND_ID;
+//    m_vertices.vi_attrs[1].location = 1;
+//    m_vertices.vi_attrs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT; //float4
+//    m_vertices.vi_attrs[1].offset = sizeof(float) * 3;
+
+    m_vertices.vi_attrs[0].setBinding(VERTEX_BUFFER_BIND_ID).setLocation(1).setFormat(Format::eR32G32B32A32Sfloat).setOffset(
+            sizeof(float)*3);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void VkSample::InitLayouts()
 {
-    VkResult ret = VK_SUCCESS;
+//    VkResult ret = VK_SUCCESS;
     // This sample has no bindings, so the layout is empty.
-    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
-    descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    descriptorSetLayoutCreateInfo.pNext = nullptr;
-    descriptorSetLayoutCreateInfo.bindingCount = 0;
-    descriptorSetLayoutCreateInfo.pBindings = nullptr;
+//    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
+//    descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+//    descriptorSetLayoutCreateInfo.pNext = nullptr;
+//    descriptorSetLayoutCreateInfo.bindingCount = 0;
+//    descriptorSetLayoutCreateInfo.pBindings = nullptr;
 
-    ret = vkCreateDescriptorSetLayout(m_device, &descriptorSetLayoutCreateInfo, nullptr, &m_descriptorLayout);
-    VK_CHECK(!ret);
+    DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
+
+//    ret = vkCreateDescriptorSetLayout(m_device, &descriptorSetLayoutCreateInfo, nullptr, &m_descriptorLayout);
+//    VK_CHECK(!ret);
+    descriptorLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 
     // Our pipeline layout simply points to the empty descriptor layout.
-    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-    pipelineLayoutCreateInfo.sType              = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutCreateInfo.pNext              = nullptr;
-    pipelineLayoutCreateInfo.setLayoutCount     = 1;
-    pipelineLayoutCreateInfo.pSetLayouts        = &m_descriptorLayout;
-    ret = vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout);
-    VK_CHECK(!ret);
+//    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+//    pipelineLayoutCreateInfo.sType              = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+//    pipelineLayoutCreateInfo.pNext              = nullptr;
+//    pipelineLayoutCreateInfo.setLayoutCount     = 1;
+//    pipelineLayoutCreateInfo.pSetLayouts        = &m_descriptorLayout;
+//    ret = vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout);
+//    VK_CHECK(!ret);
 
+    PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+    pipelineLayoutCreateInfo.setPSetLayouts(&descriptorLayout).setSetLayoutCount(1);
+    pipelineLayout = device.createPipelineLayout(pipelineLayoutCreateInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -986,22 +1014,24 @@ void VkSample::InitPipeline()
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-VkShaderModule VkSample::CreateShaderModule(const uint32_t* code, uint32_t size)
+ShaderModule VkSample::CreateShaderModule(const uint32_t* code, uint32_t size)
 {
-    VkShaderModule module;
-    VkResult  err;
+//    VkShaderModule module;
+//    VkResult  err;
+//
+//    // Creating a shader is very simple once it's in memory as compiled SPIR-V.
+//    VkShaderModuleCreateInfo moduleCreateInfo = {};
+//    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+//    moduleCreateInfo.pNext = nullptr;
+//    moduleCreateInfo.codeSize = size;
+//    moduleCreateInfo.pCode = code;
+//    moduleCreateInfo.flags = 0;
+//    err = vkCreateShaderModule(m_device, &moduleCreateInfo, nullptr, &module);
+//    VK_CHECK(!err);
 
-    // Creating a shader is very simple once it's in memory as compiled SPIR-V.
-    VkShaderModuleCreateInfo moduleCreateInfo = {};
-    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    moduleCreateInfo.pNext = nullptr;
-    moduleCreateInfo.codeSize = size;
-    moduleCreateInfo.pCode = code;
-    moduleCreateInfo.flags = 0;
-    err = vkCreateShaderModule(m_device, &moduleCreateInfo, nullptr, &module);
-    VK_CHECK(!err);
-
-    return module;
+    ShaderModuleCreateInfo createInfo;
+    createInfo.setCodeSize(size).setPCode(code);
+    return device.createShaderModule(createInfo);
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1012,28 +1042,34 @@ void VkSample::InitFrameBuffers()
     // the references defined in that renderpass to now attach to views.
     // The views in this example are the colour view, which is our swapchain image,
     // and the depth buffer created manually earlier.
-    VkImageView attachments[2] = {};
-    VkFramebufferCreateInfo framebufferCreateInfo = {};
-    framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferCreateInfo.pNext = nullptr;
-    framebufferCreateInfo.renderPass = m_renderPass;
-    framebufferCreateInfo.attachmentCount = 2;
-    framebufferCreateInfo.pAttachments = attachments;
-    framebufferCreateInfo.width  = m_width;
-    framebufferCreateInfo.height = m_height;
-    framebufferCreateInfo.layers = 1;
+//    VkImageView attachments[2] = {};
+//    VkFramebufferCreateInfo framebufferCreateInfo = {};
+//    framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+//    framebufferCreateInfo.pNext = nullptr;
+//    framebufferCreateInfo.renderPass = m_renderPass;
+//    framebufferCreateInfo.attachmentCount = 2;
+//    framebufferCreateInfo.pAttachments = attachments;
+//    framebufferCreateInfo.width  = m_width;
+//    framebufferCreateInfo.height = m_height;
+//    framebufferCreateInfo.layers = 1;
 
-    VkResult ret;
+    ImageView attachments[2] = {};
+    FramebufferCreateInfo fboInfo;
+    fboInfo.setRenderPass(renderPass).setAttachmentCount(2).setPAttachments(attachments).setWidth(m_width).setHeight(m_height).setLayers(1);
 
-    m_frameBuffers = new VkFramebuffer[m_swapchainImageCount];
+//    VkResult ret;
+
+//    m_frameBuffers = new VkFramebuffer[m_swapchainImageCount];
+    framebuffers.resize(m_swapchainImageCount);
     // Reusing the framebufferCreateInfo to create m_swapchainImageCount framebuffers,
     // only the attachments to the relevent image views change each time.
     for (uint32_t i = 0; i < m_swapchainImageCount; i++) {
         attachments[0] = m_swapchainBuffers[i].view;
         attachments[1] = m_depthBuffers[i].view;
 
-        ret = vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &m_frameBuffers[i]);
-        VK_CHECK(!ret);
+//        ret = vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &m_frameBuffers[i]);
+//        VK_CHECK(!ret);
+        framebuffers[i] = device.createFramebuffer(fboInfo);
     }
 }
 
@@ -1175,8 +1211,10 @@ bool VkSample::TearDown()
     device.destroySemaphore(renderCompleteSemaphore);
 
     // Destroy vertices
-    vkDestroyBuffer(m_device, m_vertices.buf, nullptr);
-    vkFreeMemory(m_device, m_vertices.mem, nullptr);
+//    vkDestroyBuffer(m_device, m_vertices.buf, nullptr);
+    device.destroyBuffer(m_vertices.buf);
+//    vkFreeMemory(m_device, m_vertices.mem, nullptr);
+    device.freeMemory(m_vertices.mem);
 
     // Destroy the swapchain
 //    vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
@@ -1216,52 +1254,66 @@ void VkSample::BuildCmdBuffer()
 
         cmdBuffer.reset(CommandBufferResetFlagBits());
 
-        VkCommandBufferInheritanceInfo cmd_buf_hinfo = {};
-        cmd_buf_hinfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-        cmd_buf_hinfo.pNext = nullptr;
-        cmd_buf_hinfo.renderPass = VK_NULL_HANDLE;
-        cmd_buf_hinfo.subpass = 0;
-        cmd_buf_hinfo.framebuffer = VK_NULL_HANDLE;
-        cmd_buf_hinfo.occlusionQueryEnable = VK_FALSE;
-        cmd_buf_hinfo.queryFlags = 0;
-        cmd_buf_hinfo.pipelineStatistics = 0;
+//        VkCommandBufferInheritanceInfo cmd_buf_hinfo = {};
+//        cmd_buf_hinfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+//        cmd_buf_hinfo.pNext = nullptr;
+//        cmd_buf_hinfo.renderPass = VK_NULL_HANDLE;
+//        cmd_buf_hinfo.subpass = 0;
+//        cmd_buf_hinfo.framebuffer = VK_NULL_HANDLE;
+//        cmd_buf_hinfo.occlusionQueryEnable = VK_FALSE;
+//        cmd_buf_hinfo.queryFlags = 0;
+//        cmd_buf_hinfo.pipelineStatistics = 0;
 
-        VkCommandBufferBeginInfo cmd_buf_info = {};
-        cmd_buf_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        cmd_buf_info.pNext = nullptr;
-        cmd_buf_info.flags = 0;
-        cmd_buf_info.pInheritanceInfo = &cmd_buf_hinfo;
+//        VkCommandBufferBeginInfo cmd_buf_info = {};
+//        cmd_buf_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+//        cmd_buf_info.pNext = nullptr;
+//        cmd_buf_info.flags = 0;
+//        cmd_buf_info.pInheritanceInfo = &cmd_buf_hinfo;
+
+        CommandBufferInheritanceInfo inheritanceInfo;
+        CommandBufferBeginInfo cmdBeginInfo;
+        cmdBeginInfo.setPInheritanceInfo(&inheritanceInfo);
 
         // By calling vkBeginCommandBuffer, cmdBuffer is put into the recording state.
-        err = vkBeginCommandBuffer(cmdBuffer, &cmd_buf_info);
-        VK_CHECK(!err);
+//        err = vkBeginCommandBuffer(cmdBuffer, &cmd_buf_info);
+//        VK_CHECK(!err);
+        cmdBuffer.begin(cmdBeginInfo);
+
 
         // Before we can use the back buffer from the swapchain, we must change the
         // image layout from the PRESENT mode to the COLOR_ATTACHMENT mode.
         // PRESENT mode is optimal for sending to the screen for users to see, so the
         // image will be set back to that mode after we have completed rendering.
-        VkImageMemoryBarrier preRenderBarrier = {};
-        preRenderBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        preRenderBarrier.pNext = nullptr;
-        preRenderBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-        preRenderBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        preRenderBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        preRenderBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        preRenderBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        preRenderBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        preRenderBarrier.image = m_swapchainBuffers[i].image;
-        preRenderBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        preRenderBarrier.subresourceRange.baseArrayLayer = 0;
-        preRenderBarrier.subresourceRange.baseMipLevel = 1;
-        preRenderBarrier.subresourceRange.layerCount = 0;
-        preRenderBarrier.subresourceRange.levelCount = 1;
+//        VkImageMemoryBarrier preRenderBarrier = {};
+//        preRenderBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+//        preRenderBarrier.pNext = nullptr;
+//        preRenderBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+//        preRenderBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+//        preRenderBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+//        preRenderBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+//        preRenderBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+//        preRenderBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+//        preRenderBarrier.image = m_swapchainBuffers[i].image;
+//        preRenderBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+//        preRenderBarrier.subresourceRange.baseArrayLayer = 0;
+//        preRenderBarrier.subresourceRange.baseMipLevel = 1;
+//        preRenderBarrier.subresourceRange.layerCount = 0;
+//        preRenderBarrier.subresourceRange.levelCount = 1;
+
+        ImageMemoryBarrier preRenderBarrier(AccessFlagBits::eMemoryRead,AccessFlagBits::eColorAttachmentWrite,
+                                      ImageLayout::ePresentSrcKHR,ImageLayout::eColorAttachmentOptimal,
+                                      VK_QUEUE_FAMILY_IGNORED,VK_QUEUE_FAMILY_IGNORED,
+                                      m_swapchainBuffers[i].image,
+                                        ImageSubresourceRange(ImageAspectFlagBits::eColor,0,1,0,1));
 
         // Thie PipelineBarrier function can operate on memoryBarriers,
         // bufferMemory and imageMemory buffers. We only provide a single
         // imageMemoryBarrier.
-        vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             0, 0, nullptr, 0, nullptr, 1, &preRenderBarrier);
+//        vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+//                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+//                             0, 0, nullptr, 0, nullptr, 1, &preRenderBarrier);
+        cmdBuffer.pipelineBarrier(PipelineStageFlagBits::eColorAttachmentOutput,PipelineStageFlagBits::eColorAttachmentOutput,
+                                  DependencyFlags(),0,nullptr,0,nullptr,1,&preRenderBarrier);
                              
         // When starting the render pass, we can set clear values.
         VkClearValue clear_values[2] = {};
@@ -1288,17 +1340,21 @@ void VkSample::BuildCmdBuffer()
 
         // Set our pipeline. This holds all major state
         // the pipeline defines, for example, that the vertex buffer is a triangle list.
-        vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+//        vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+        cmdBuffer.bindPipeline(PipelineBindPoint::eGraphics,pipeline);
 
         // Bind our vertex buffer, with a 0 offset.
         VkDeviceSize offsets[1] = {0};
-        vkCmdBindVertexBuffers(cmdBuffer, VERTEX_BUFFER_BIND_ID, 1, &m_vertices.buf, offsets);
+//        vkCmdBindVertexBuffers(cmdBuffer, VERTEX_BUFFER_BIND_ID, 1, &m_vertices.buf, offsets);
+        cmdBuffer.bindVertexBuffers(VERTEX_BUFFER_BIND_ID,1,&m_vertices.buf, offsets);
 
         // Issue a draw command, with our 3 vertices.
-        vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+//        vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+        cmdBuffer.draw(3,1,0,0);
 
         // Now our render pass has ended.
-        vkCmdEndRenderPass(cmdBuffer);
+//        vkCmdEndRenderPass(cmdBuffer);
+        cmdBuffer.endRenderPass();
 
         // As stated earlier, now transition the swapchain image to the PRESENT mode.
         VkImageMemoryBarrier prePresentBarrier = {};
@@ -1321,8 +1377,9 @@ void VkSample::BuildCmdBuffer()
                              0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
 
         // By ending the command buffer, it is put out of record mode.
-        err = vkEndCommandBuffer(cmdBuffer);
-        VK_CHECK(!err);
+//        err = vkEndCommandBuffer(cmdBuffer);
+//        VK_CHECK(!err);
+        cmdBuffer.end();
     }
 }
 
